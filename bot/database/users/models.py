@@ -2,17 +2,18 @@ import bcrypt
 import jwt
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import declarative_base, Mapped, mapped_column
 
 from ...config import SECRET_KEY
-from ..config import Base
+
+Base = declarative_base()
 
 class User(Base):
     __tablename__ = 'user'
 
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(32), unique=True, nullable=False)
-    hashed_password: Mapped[str]= mapped_column(String(1024), nullable=False)
+    hashed_password: Mapped[str] = mapped_column(String(1024), nullable=False)
     # name: Mapped[str] = mapped_column(String(64), nullable=False)
     # surname: Mapped[str] = mapped_column(String(64), nullable=False)
     # patronymic: Mapped[str] = mapped_column(String(64), nullable=False)

@@ -23,5 +23,4 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # Сформировать URL для SQLAlchemy
 DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 DATABASE_URL_ENCODED = urllib.parse.quote_plus(DATABASE_URL)
-print(DATABASE_URL_ENCODED)
 os.environ["DATABASE_URL"] = DATABASE_URL
