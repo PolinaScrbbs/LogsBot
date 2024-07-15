@@ -26,7 +26,7 @@ class Inventory(Base):
     user_id = mapped_column(ForeignKey("users.id"), unique=True, nullable=False)
     user: Mapped["User"] =  relationship(back_populates='inventory')
 
-association_table = Table('inventory_items', Base.metadata,
+inventory_items = Table('inventory_items', Base.metadata,
     Column('item_id', Integer, ForeignKey('items.id')),
     Column('inventory_id', Integer, ForeignKey('inventory.id'))
 )

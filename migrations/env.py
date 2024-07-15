@@ -10,7 +10,7 @@ from bot.config import DATABASE_URL
 # from bot.database.models.users import *
 # from bot.database.models.inventory import *
 # from bot.database.models import Base
-from bot.database.models.inventory import Base #as InventoryBase
+from bot.database.models.recipes import Base #as InventoryBase
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

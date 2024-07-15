@@ -48,3 +48,20 @@ class User(Base):
             raise Exception("Токен истек")
         except jwt.InvalidTokenError:
             raise Exception("Неверный токен")
+        
+    def get_inventory_items(self):
+        inventory = self.inventory
+
+        if inventory:
+            items = inventory.items
+
+            item_counts = {}
+            for item in items:
+                if item.title in item_counts:
+                    item_counts[item.title] += 1
+                else:
+                    item_counts[item.title] = 1
+
+            return item_counts
+        else:
+            return {}
