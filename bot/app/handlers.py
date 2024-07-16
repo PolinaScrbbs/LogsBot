@@ -2,10 +2,13 @@ from aiogram import F, Router
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils import markdown
+
 from aiogram.fsm.context import FSMContext
+from sqlalchemy import select
 
 import app.keyboards as kb
 import app.states as st
+from . import User, Token
 from app.validators.registration import RegistrationValidator
 from database import get_async_session
 import database.requests as rq
@@ -16,7 +19,16 @@ router = Router()
 #Старт
 @router.message(CommandStart())
 async def cmd_start(message:Message):
-    await message.answer(f'Привет👋\nВыбери пункт из меню🔍', reply_markup=kb.start)
+    session = await get_async_session()
+    result = await session.execute(
+            select(User).filter(User.username == message.from_user.username)
+        )
+    user = result.scalar_one_or_none()
+    try:
+        user.get_token()
+        await message.answer(f'С возвращением👋\nВыбери пункт из меню🔍', reply_markup=kb.start)
+    except:
+        await message.answer(f'Привет👋\nВыбери пункт из меню🔍', reply_markup=kb.start)
 
 
 #Регистрация============================================================================================================
@@ -75,5 +87,43 @@ async def registration(message: Message, state: FSMContext):
     except Exception as e:
         await message.answer(f'❌*Ошибка:* {str(e)}', parse_mode="Markdown", reply_markup=kb.start)
 
+    finally:
+        await state.clear()
+
+
+#Авторизация============================================================================================================
+
+
+@router.message(Text(equals="Авторизация"), state="*")
+async def get_password(message: Message, state: FSMContext):
+    await state.set_state(st.Auth.password)
+    await message.answer('🔑Введите пароль', reply_markup=kb.cancel)
+
+@router.message(st.Auth.password)
+async def authorazation(message: Message, state: FSMContext):
+    login = message.from_user.username
+    password = message.text
+    
+
+    try:
+        session = await get_async_session()
+        result = await session.execute(
+                select(User).filter(User.username == login)
+            )
+        user = result.scalar_one_or_none()
+        
+        if user and user.check_password(password):
+            token = user.generate_token()
+            token = Token(user_id=user.id, token=token)
+            session.add(token)
+            await session.commit()
+
+            # await db_res.save_token(message.from_user.id, token)  # Сохранение токена в базе данных (замените на свою функцию)
+            await message.answer(f"*@{message.from_user.username}*, авторизация завершена ✌️", parse_mode="Markdown")
+        else:
+            await message.answer("❌ Неверный логин или пароль")
+
+    except Exception as e:
+        await message.answer(f'❌Ошибка авторизации {e}')
     finally:
         await state.clear()

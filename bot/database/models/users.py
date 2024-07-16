@@ -1,7 +1,8 @@
+from typing import List
 import bcrypt
 import jwt
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import DateTime, Integer, String, func
+from sqlalchemy import DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
 
 from config import SECRET_KEY
@@ -24,6 +25,7 @@ class User(Base):
     is_verified: Mapped[bool] = mapped_column(default=False, nullable=False)
     mailing_consent: Mapped[bool] = mapped_column(default=False, nullable=False)
 
+    token: Mapped["Token"] = relationship("Token", back_populates="user")
     inventory: Mapped["Inventory"] = relationship("Inventory", back_populates="user")
 
     def set_password(self, password: str) -> None:
@@ -39,8 +41,15 @@ class User(Base):
         }
         return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
-    @staticmethod
-    def verify_token(token: str) -> int:
+    def get_token(self) -> "Token":
+        return self.tokens
+
+    def delete_token(self, token_id: int) -> None:
+        token_to_delete = next((token for token in self.tokens if token.id == token_id), None)
+        if token_to_delete:
+            self.tokens.remove(token_to_delete)
+
+    def verify_token(self, token: str) -> int:
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
             return payload["user_id"]
@@ -65,3 +74,12 @@ class User(Base):
             return item_counts
         else:
             return {}
+        
+class Token(Base):
+    __tablename__ = "tokens"
+
+    id = mapped_column(Integer, primary_key=True)
+    token: Mapped[str] = mapped_column(String(256), unique=True, nullable=False)
+    user_id = mapped_column(Integer, ForeignKey("users.id"))
+
+    user: Mapped["User"] = relationship("User", back_populates="token")
