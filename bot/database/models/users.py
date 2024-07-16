@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import DateTime, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
 
-from ...config import SECRET_KEY
+from config import SECRET_KEY
 
 class Base(DeclarativeBase):
     pass
@@ -15,16 +15,16 @@ class User(Base):
     id = mapped_column(Integer, primary_key=True)
     username: Mapped[str] = mapped_column(String(32), unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(1024), nullable=False)
-    # name: Mapped[str] = mapped_column(String(64), nullable=False)
-    # surname: Mapped[str] = mapped_column(String(64), nullable=False)
-    # patronymic: Mapped[str] = mapped_column(String(64), nullable=False)
-    email: Mapped[str] = mapped_column(String(40), unique=True, nullable=True)
+    name: Mapped[str] = mapped_column(String(64), nullable=False)
+    surname: Mapped[str] = mapped_column(String(64), nullable=False)
+    patronymic: Mapped[str] = mapped_column(String(64), nullable=False)
+    email: Mapped[str] = mapped_column(String(40), default=None, unique=True, nullable=True)
     # phone_number: Mapped[str] = mapped_column(CHAR(15), unique=True, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(True), server_default=func.now())
     is_verified: Mapped[bool] = mapped_column(default=False, nullable=False)
     mailing_consent: Mapped[bool] = mapped_column(default=False, nullable=False)
 
-    inventory: Mapped["Inventory"] = relationship(back_populates="user")
+    inventory: Mapped["Inventory"] = relationship("Inventory", back_populates="user")
 
     def set_password(self, password: str) -> None:
         self.hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
