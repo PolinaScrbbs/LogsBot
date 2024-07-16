@@ -1,6 +1,5 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Table
+from sqlalchemy import Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from enum import Enum as BaseEnum
 
 from .inventory import Base
 
